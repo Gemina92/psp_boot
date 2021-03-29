@@ -193,7 +193,7 @@ public class HRController {
 		pReq.receiveData();
 		PlatformData in_pData = pReq.getData();
 		logger.info("positionSelect(Controller) 호출 성공");
-		//
+		// blah blah blah..
 		String p_psName = null;
 		p_psName = request.getParameter("p_psName");
 		logger.info("p_psName : " + p_psName);
