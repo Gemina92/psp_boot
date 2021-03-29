@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.mybatis.HRMapper">
+
+	<!-- **************** rank ***************** -->
+	<select id="rank_select" parameterType="string" resultType="map">
+		<!-- p_deptNo값이 있을 때 -->
+		<if test='p_deptNo!=null and p_deptNo.length>0 and p_deptNo!="undefined"'>
+			 		select distinct r.rank_no, r.rank_name, r.rank_use, r.rank_note <!-- distinct도 사용 가능 -->
+			 			from rank r, emp e, dept d
+			 		where r.rank_no = e.rank_no and e.dept_no = d.dept_no
+			 			and e.dept_no = #{p_deptNo}
+			 			order by rank_no
+		</if>
+		<!-- p_deptNo값이 없을 때 -->
+		<if test='p_deptNo==null or p_deptNo=="undefined"'>
+		select * from rank 
+			<!-- p_rkName값이 있을 때 -->
+			<if test='p_rkName!=null and p_rkName!="undefined"'>
+				<where>
+					rank_name LIKE '%'||#{p_rkName}||'%'
+				</where>
+			</if>
+		</if>
+	</select>
+	
+	<delete id="rank_deleteAll" parameterType="list">
+        delete from rank
+          	where rank_no in
+          <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+    </delete> 
+    
+    <select id="rank_check" parameterType="string" resultType="map">
+		select * from rank
+		<where>
+			<if test='p_rankNo!=null and p_rankNo.length>0 and p_rankNo!="undefined"'>
+				rank_no = #{p_rankNo}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="rank_insert" parameterType="map">
+ 		INSERT INTO rank(rank_no ,rank_name, rank_use, rank_note) 
+        	values(#{p_rankNo}, #{p_rankName}, #{p_rankUse}, #{p_rankNote}) 
+ 	</insert>
+ 	
+ 	<update id="rank_update" parameterType="map">
+ 		update rank set rank_no=#{p_afterRankNo}, rank_name=#{p_rankName}, rank_use=#{p_rankUse}, rank_note=#{p_rankNote}
+ 			where rank_no=#{p_beforeRankNo}  
+ 	</update>
+	
+	<!-- **************** zip ************** -->
+
+	<select id="zip_search" parameterType="string" resultType="map">
+		<if test='p_search!=null and p_search.length>0 and p_search!="undefined"'>
+			select zip_code, zip_address from zip
+			<where>
+					zip_dong LIKE '%'||#{p_search}||'%'
+			</where>
+		</if>
+		<if test='p_search==null or p_search.length==0 or p_search=="undefined"'>
+			select -1 from dual
+		</if>
+	</select>
+	
+	<!-- **************** position ************** -->
+	<select id="position_select" parameterType="string" resultType="map">
+		select * from position
+		<where>
+			<if test='p_psName!=null and p_psName.length>0 and p_psName!="undefined"'>
+				position_name LIKE '%'||#{p_psName}||'%'
+			</if>
+		</where>
+	</select>
+	
+	<delete id="position_deleteAll" parameterType="list">
+        delete from position
+          	where position_no in
+          <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+    </delete> 
+    
+    <select id="position_check" parameterType="string" resultType="map">
+		select * from position
+		<where>
+			<if test='p_positionNo!=null and p_positionNo.length>0 and p_positionNo!="undefined"'>
+				position_no = #{p_positionNo}
+			</if>
+		</where>
+	</select>
+	
+    <select id="position_ucheck" parameterType="string" resultType="map">
+		select * from position
+		<where>
+			<if test='p_positionNo!=null and p_positionNo.length>0 and p_positionNo!="undefined"'>
+				position_no = #{p_positionNo}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="position_insert" parameterType="map">
+ 		INSERT INTO position(position_no ,position_name, position_use, position_note) 
+        	values(#{p_positionNo}, #{p_positionName}, #{p_positionUse}, #{p_positionNote}) 
+ 	</insert>
+	
+	<update id="position_update" parameterType="map">
+ 		update position set position_no=#{p_afterPositionNo}, position_name=#{p_positionName}
+ 		, position_use=#{p_positionUse}, position_note=#{p_positionNote}
+ 			where position_no=#{p_beforePositionNo}  
+ 	</update>
+	
+	<!-- **************** emp ***************** -->
+	<select id="emp_select" parameterType="string" resultType="map">
+		select e.emp_no, e.emp_name, d.dept_name, r.rank_name, e.emp_birth,
+		    e.emp_endate, e.emp_note 
+		from emp e, dept d, rank r
+			<where>
+				e.dept_no=d.dept_no AND e.rank_no=r.rank_no
+			 	<if test='p_empName!=null and p_empName.length>0 and p_empName!="undefined"'>
+			 		AND e.emp_name LIKE '%'||#{p_empName}||'%'
+			 	</if>
+			 	<if test='p_deptNo!=null and p_deptNo.length>0 and p_deptNo!="undefined"'>
+			 		<if test='p_rankNo!=null and p_rankNo.length>0 and p_rankNo!="undefined"'>
+			 			AND e.dept_no=d.dept_no AND e.rank_no=r.rank_no 
+			 			AND e.dept_no=#{p_deptNo} AND e.rank_no=#{p_rankNo}
+			 		</if>
+			 	</if>
+			 	
+			 </where>
+	</select>
+	
+	<select id="emp_Uselect" parameterType="string" resultType="map">
+		select * from emp
+			<where>
+			 	<if test='p_empNo!=null and p_empNo.length>0 and p_empNo!="undefined"'>
+			 		emp_no = #{p_empNo}
+			 	</if>
+			 </where>
+	</select>
+	
+	<delete id="emp_deleteAll" parameterType="list">
+        delete from emp
+          	where emp_no in
+          <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+    </delete>  
+    
+ 	<select id="emp_check" parameterType="string" resultType="map">
+		select * from emp
+		<where>
+			<if test='p_empNo!=null and p_empNo.length>0 and p_empNo!="undefined"'>
+				emp_no = #{p_empNo}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="emp_insert" parameterType="map">
+ 		INSERT INTO emp(emp_no ,emp_name, emp_birth, emp_num,
+ 			emp_email, emp_accnum, emp_accname, 
+ 			emp_accholder, rank_no, position_no, dept_no, emp_addrcode, emp_address,
+ 			ent_no, emp_pw, emp_endate) 
+	        	values(#{EMP_NO}, #{EMP_NAME}, #{EMP_BIRTH}, #{EMP_NUM},
+	        		#{EMP_EMAIL}, #{EMP_ACCNUM}, #{EMP_ACCNAME}, 
+	        		#{EMP_ACCHOLDER}, #{RANK_NO}, #{POSITION_NO}, #{DEPT_NO}, 
+	        		#{EMP_ADDRCODE}, #{EMP_ADDRESS},
+	        		'ENT_1', '11', #{EMP_ENDATE}) 
+ 	</insert>
+ 	
+ 	<update  id="emp_update" parameterType="map">
+		update emp
+ 			set 
+		 		EMP_NO          = #{EMP_NO         },     
+		 		EMP_NAME        = #{EMP_NAME       },     
+		 		EMP_BIRTH       = #{EMP_BIRTH      },     
+		 		EMP_NUM         = #{EMP_NUM        },     
+		 		EMP_EMAIL       = #{EMP_EMAIL      },     
+		 		EMP_ENDATE      = #{EMP_ENDATE     },     
+		 		EMP_ADDRESS     = #{EMP_ADDRESS    },     
+		        EMP_ADDRCODE    = #{EMP_ADDRCODE   },     
+		        EMP_ACCNAME     = #{EMP_ACCNAME    },     
+		        EMP_ACCHOLDER   = #{EMP_ACCHOLDER  },     
+		        EMP_ACCNUM      = #{EMP_ACCNUM     },     
+		        DEPT_NO         = #{DEPT_NO        },     
+   			 	RANK_NO      	= #{RANK_NO        },     
+   			    POSITION_NO     = #{POSITION_NO    },     
+			   	EMP_NOTE        = #{EMP_NOTE       },     
+				ENT_NO          = #{ENT_NO         },     
+				EMP_PW          = #{EMP_PW         }     
+			where EMP_NO = #{EMP_BEFORE_NO}
+ 	</update>
+    
+    <!-- **************** dept ****************** --> 
+    <select id="dept_select" parameterType="string" resultType="map">
+		select * from dept
+		<where>
+			<if test='p_deptName!=null and p_deptName.length>0 and p_deptName!="undefined"'>
+					dept_name LIKE '%'||#{p_deptName}||'%'
+			</if>
+		</where>
+	</select>
+	
+    <select id="dept_check" parameterType="string" resultType="map">
+		select * from dept
+		<where>
+			<if test='p_deptNo!=null and p_deptNo.length>0 and p_deptNo!="undefined"'>
+				dept_no = #{p_deptNo}
+			</if>
+		</where>
+	</select>
+	
+	<delete id="dept_deleteAll" parameterType="list">
+        delete from dept
+          	where dept_no in
+          <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+    </delete> 
+	
+	<insert id="dept_Insert" parameterType="map">
+ 		INSERT INTO dept(dept_no ,dept_name, dept_use, dept_note) 
+        	values(#{p_deptNo}, #{p_deptName}, #{p_deptUse}, #{p_deptNote}) 
+ 	</insert>
+ 	
+ 	<update id="dept_Update" parameterType="map">
+ 		update dept set dept_no=#{p_afterDeptNo}, dept_name=#{p_deptName}, dept_use=#{p_deptUse}, dept_note=#{p_deptNote}
+ 			where dept_no=#{p_beforeDeptNo}  
+ 	</update>
+	
+    <!-- **************** salary **************** -->
+    <select id="salary_select" parameterType="map" resultType="map">
+		select e.emp_no, e.emp_name, d.dept_name, r.rank_name
+			, (s.salary_c100 + s.salary_c101 + s.salary_c102 + s.salary_c103 + s.salary_c104 + s.salary_c105 
+			- s.salary_d100 - s.salary_d101 - s.salary_d102 - s.salary_d103 - s.salary_d104) salary_amount
+        	,e.emp_endate,s.salary_note,s.salary_no,s.salary_date    
+	 		,s.salary_c100,s.salary_c101,s.salary_c102,s.salary_c103,s.salary_c104,s.salary_c105      
+	        ,s.salary_d100,s.salary_d101,s.salary_d102,s.salary_d103,s.salary_d104
+    from emp e, dept d, rank r, salary s
+		<where>
+			s.emp_no = e.emp_no 
+			and e.dept_no = d.dept_no
+            and r.rank_no = e.rank_no
+		 	<if test='p_salaryNo!=null and p_salaryNo.length>0 and p_salaryNo!="undefined"'>
+		 		and s.salary_no = #{p_salaryNo}
+		 	</if>
+		 	<if test='p_deptNo!=null and p_deptNo.length>0 and p_deptNo!="undefined"'>
+		 		and d.dept_no = #{p_deptNo}
+		 	</if>
+		 	<if test='p_rankNo!=null and p_rankNo.length>0 and p_rankNo!="undefined"'>
+		 		and r.rank_no = #{p_rankNo}
+		 	</if>
+		</where>
+	</select>
+	
+	<delete id="salary_deleteAll" parameterType="list">
+        delete from salary
+          	where salary_no in
+          <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+    </delete>  
+ 
+ 	<!-- 이렇게 코딩하면 안됨. 어쩔수 없어서 한 것. -->
+ 	<insert id="salary_Insert" parameterType="map">
+ 		INSERT INTO salary(salary_no
+	 		,salary_date,emp_no      
+	 		,salary_c100,salary_c101,salary_c102,salary_c103,salary_c104,salary_c105      
+	        ,salary_d100,salary_d101,salary_d102,salary_d103,salary_d104) 
+        values(seq_salary_no.nextval,
+        #{p_salaryDate},#{p_empNo}
+		 		,#{p_c100}
+		 		,#{p_c101}
+		 		,#{p_c102}
+		 		,#{p_c103}
+		 		,#{p_c104}
+		 		,#{p_c105}
+		 		,#{p_d100}
+		 		,#{p_d101}
+		 		,#{p_d102}
+		 		,#{p_d103}
+		 		,#{p_d104}
+        ) 
+ 	</insert>
+ 	
+ 	<update  id="salary_update" parameterType="map">
+		update salary
+ 			set 
+		 		salary_date   = #{p_salaryDate},
+		 		salary_c100   = #{p_c100}, 
+		 		salary_c101   = #{p_c101},
+		 		salary_c102   = #{p_c102},
+		 		salary_c103   = #{p_c103}, 
+		 		salary_c104   = #{p_c104}, 
+		 		salary_c105   = #{p_c105},  
+		        salary_d100   = #{p_d100}, 
+		        salary_d101   = #{p_d101}, 
+		        salary_d102   = #{p_d102}, 
+		        salary_d103   = #{p_d103}, 
+		        salary_d104   = #{p_d104} 
+   			where salary_no = #{p_salaryNo}
+ 	</update>
+ 	
+ 	<select id="emailSend" parameterType="list" resultType="map">
+		select e.emp_no, e.emp_name, d.dept_name, r.rank_name, e.emp_accname
+			, e.emp_accnum, s.salary_no, e.emp_email
+			, (s.salary_c100 + s.salary_c101 + s.salary_c102 + s.salary_c103 + s.salary_c104 + s.salary_c105 
+				- s.salary_d100 - s.salary_d101 - s.salary_d102 - s.salary_d103 - s.salary_d104) salary_amount
+	      	, s.salary_date    
+			, s.salary_c100, s.salary_c101, s.salary_c102, s.salary_c103, s.salary_c104, s.salary_c105      
+			, s.salary_d100, s.salary_d101, s.salary_d102, s.salary_d103, s.salary_d104
+	    	from emp e, dept d, rank r, salary s
+		where 
+			s.emp_no = e.emp_no 
+			and e.dept_no = d.dept_no
+            and r.rank_no = e.rank_no
+            and salary_no in
+			<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</select>
+	
+</mapper>
+

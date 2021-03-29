@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.mybatis.SalesMapper">
+	<select id="account_select" parameterType="map" resultType="map">
+		select account_code, account_name, account_repnum, account_rep, 
+		account_num, account_addr, emp_name, account_use 
+		from account, emp
+ 		<where>
+ 			emp.emp_no(+) = account.emp_no
+		 	<if test='p_accountCode!=null and p_accountCode.length>0 and p_accountCode!=undefined'>
+		 		account_code = #{p_accountCode}
+		 	</if>
+		 	<if test='p_accountName!=null and p_accountName.length>0 and p_accountName!=undefined'>
+		 		and account_name = #{p_accountName}
+		 	</if>
+		 	<if test='p_accountRep!=null and p_accountRep.length>0 and p_accountRep!=undefined'>
+		 		and account_rep = #{p_accountRep}
+		 	</if>
+		 </where>
+	</select>
+	
+</mapper>

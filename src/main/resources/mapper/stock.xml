@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.mybatis.StockMapper">
+	
+	<select id="in_select" parameterType="map" resultType="map">
+		select i.inout_date, a.account_name, c.crops_no, c.crops_name, i.inout_amount, i.inout_unit
+		from inout i, crops c, account a
+		<where> 
+			i.account_code = a.account_code AND a.crops_no = c.crops_no AND i.inout_opt = 1
+			<if test='period_from!=null and period_from.length>0 and period_from!="undefined"'>
+				AND i.inout_date >= #{period_from}
+			</if>
+			<if test='period_to!=null and period_to.length>0 and period_to!="undefined"'>
+				AND #{period_to} >= i.inout_date 
+			</if>
+			<if test='account_name!=null and account_name.length>0 and account_name!="undefined"'>
+				AND a.account_name LIKE '%'||#{account_name}||'%'
+			</if>
+			<if test='crops_name!=null and crops_name.length>0 and crops_name!="undefined"'>
+				AND c.crops_name LIKE '%'||#{crops_name}||'%'
+			</if>
+		</where>
+	</select>
+	
+	<select id="out_select" parameterType="map" resultType="map">
+		select i.inout_date, a.account_name, c.crops_no, c.crops_name, i.inout_amount, i.inout_unit
+		from inout i, crops c, account a
+		<where> 
+			i.account_code = a.account_code AND a.crops_no = c.crops_no AND i.inout_opt = 2
+			<if test='period_from!=null and period_from.length>0 and period_from!="undefined"'>
+				AND i.inout_date >= #{period_from}
+			</if>
+			<if test='period_to!=null and period_to.length>0 and period_to!="undefined"'>
+				AND #{period_to} >= i.inout_date 
+			</if>
+			<if test='account_name!=null and account_name.length>0 and account_name!="undefined"'>
+				AND a.account_name LIKE '%'||#{account_name}||'%'
+			</if>
+			<if test='crops_name!=null and crops_name.length>0 and crops_name!="undefined"'>
+				AND c.crops_name LIKE '%'||#{crops_name}||'%'
+			</if>
+		</where>
+	</select>
+	
+	<select id="crops_select" parameterType="map" resultType="map">
+		select crops_no, crops_sort, crops_name 
+			from crops
+		<where> 
+			<if test='p_cropsName!=null and p_cropsName.length>0 and p_cropsName!="undefined"'>
+				crops_name LIKE '%'||#{p_cropsName}||'%'
+			</if>
+			<if test='p_cropsName==null or p_cropsName.length==0 or p_cropsName=="undefined"'>
+				100 >= rownum
+			</if>
+		</where>
+	</select>
+	
+	<select id="crops_check" parameterType="map" resultType="map">
+		select crops_no, crops_sort, crops_name 
+			from crops
+		<where> 
+			<if test='p_cropsNo!=null and p_cropsNo.length>0 and p_cropsNo!="undefined"'>
+				crops_no = #{p_cropsNo}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="crops_insert" parameterType="map">
+ 		INSERT INTO crops(crops_no ,crops_sort, crops_name) 
+        	values(#{p_cropsNo}, #{p_cropsSort}, #{p_cropsName}) 
+ 	</insert>
+
+	<select id="crops_Uselect" parameterType="map" resultType="map">
+		select * from crops
+			<where>
+			 	<if test='p_cropsUNo!=null and p_cropsUNo.length>0 and p_cropsUNo!="undefined"'>
+			 		crops_no = #{p_cropsUNo}
+			 	</if>
+			 </where>
+	</select>
+	
+	<select id="crops_ucheck" parameterType="map" resultType="map">
+		select crops_no, crops_sort, crops_name 
+			from crops
+		<where> 
+			<if test='p_cropsUNo!=null and p_cropsUNo.length>0 and p_cropsUNo!="undefined"'>
+				crops_no = #{p_cropsUNo}
+			</if>
+		</where>
+	</select>
+	
+	<update id="crops_update" parameterType="map">
+ 		update crops 
+ 		set crops_no=#{p_cropsNo}, crops_sort=#{p_cropsSort}
+ 		, crops_name=#{p_cropsName}
+ 			where crops_no=#{p_beforeCropsNo}  
+ 	</update>
+ 	
+ 	<delete id="crops_deleteAll" parameterType="list">
+        delete from crops
+          	where crops_no in
+          <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+    </delete> 
+ 	
+</mapper>
+

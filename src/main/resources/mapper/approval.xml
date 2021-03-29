@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.mybatis.ApprovalMapper">
+
+	<select id="approval_select" parameterType="map" resultType="map">
+		select a.approval_no, a.approval_code, a.approval_date, a.approval_title
+			, e.emp_name, a.approval_1st, a.approval_2nd, a.approval_3rd
+			, a.approval_state, a.approval_content, a.approval_period, a.emp_no
+			, a.approval_1rs, a.approval_2rs, a.approval_3rs, a.approval_note
+	        from approval a, emp e
+		<where> 
+			e.emp_no = a.emp_no 
+			<if test='p_empNo!=null and p_empNo.length>0 and p_empNo!="undefined"'>
+	        	and e.emp_no = #{p_empNo}
+			</if>
+			<if test='period_from!=null and period_from.length>0 and period_from!="undefined"'>
+				and a.approval_date >= #{period_from}
+			</if>
+			<if test='period_to!=null and period_to.length>0 and period_to!="undefined"'>
+				and #{period_to} >= a.approval_date
+			</if>
+			<if test='state==null or state.length==0 or state=="undefined"'>
+				and a.approval_state != '5'
+			</if>
+			<if test='state!=null and state.length>0 and state!="undefined" and state=="미결재"'>
+				and a.approval_state in ('0','1','2') and a.approval_state != '5'
+			</if>
+			<if test='state!=null and state.length>0 and state!="undefined" and state=="기결재"'>
+				and a.approval_state in ('3') and a.approval_state != '5'
+			</if>
+			<if test='state!=null and state.length>0 and state!="undefined" and state=="반려"'>
+				and a.approval_state in ('4') and a.approval_state != '5'
+			</if>
+			<if test='state!=null and state.length>0 and state!="undefined" and state=="임시"'>
+				and a.approval_state in ('5')
+			</if>
+			<if test='title!=null and title.length>0 and title!="undefined"'>
+				and a.approval_title LIKE '%'||#{title}||'%'
+			</if>
+			<if test='p_apprcode!=null and p_apprcode.length>0 and p_apprcode!="undefined"'>
+				and a.approval_code = #{p_apprcode}
+			</if>
+			<if test='p_mgrName!=null and p_mgrName.length>0 and p_mgrName!="undefined"'>
+				and (
+					(a.approval_1st = #{p_mgrName} and a.approval_1rs is null)
+					or (a.approval_2nd = #{p_mgrName} and a.approval_1rs ='승인' and a.approval_2rs is null)
+					or (a.approval_3rd = #{p_mgrName} and a.approval_1rs ='승인' 
+							and a.approval_2rs ='승인' and a.approval_3rs is null)
+							)
+			</if>
+			<!-- cf) approval_state(결재상태) -->
+			<!-- 0 : 기안완료, 1 : 1차승인, 2 : 2차승인, 3 : 최종승인, 4 : 반려, 5 : 임시 -->
+		</where>
+			order by a.approval_no desc
+	</select>
+	
+	<select id="mgr_select" parameterType="map" resultType="map">
+		select a.approval_no, a.approval_code, a.approval_date, a.approval_title
+			, e.emp_name, a.approval_1st, a.approval_2nd, a.approval_3rd
+			, a.approval_state, a.approval_content, a.approval_period, a.emp_no, d.dept_name
+			, a.approval_1rs, a.approval_2rs, a.approval_3rs, a.approval_note
+	        from approval a, emp e, dept d
+		<where> 
+			e.emp_no = a.emp_no and d.dept_no = e.dept_no
+			<if test='p_apprcode!=null and p_apprcode.length>0 and p_apprcode!="undefined"'>
+	        	and a.approval_code = #{p_apprcode}
+			</if>
+		</where>
+			order by a.approval_no desc
+	</select>
+	
+	<select id="decide_select" parameterType="map" resultType="map">
+		select a.approval_no, a.approval_code, a.approval_date, a.approval_title
+			, e.emp_name, a.approval_1st, a.approval_2nd, a.approval_3rd
+			, a.approval_state, a.approval_content, a.approval_period, a.emp_no
+			, a.approval_1rs, a.approval_2rs, a.approval_3rs
+	        from approval a, emp e
+		<where> 
+			e.emp_no = a.emp_no 
+			<if test='period_from!=null and period_from.length>0 and period_from!="undefined"'>
+				and a.approval_date >= #{period_from}
+			</if>
+			<if test='period_to!=null and period_to.length>0 and period_to!="undefined"'>
+				and #{period_to} >= a.approval_date
+			</if>
+			<if test='p_mgrName!=null and p_mgrName.length>0 and p_mgrName!="undefined"'>
+				and (
+					(a.approval_1st = #{p_mgrName} and a.approval_1rs = '승인')
+					or (a.approval_2nd = #{p_mgrName} and a.approval_1rs ='승인' and a.approval_2rs = '승인')
+					or (a.approval_3rd = #{p_mgrName} and a.approval_1rs ='승인' 
+							and a.approval_2rs ='승인' and a.approval_3rs ='승인')
+							)
+			</if>
+			<!-- cf) approval_state(결재상태) -->
+			<!-- 0 : 기안완료, 1 : 1차승인, 2 : 2차승인, 3 : 최종승인, 4 : 반려, 5 : 임시 -->
+		</where>
+			order by a.approval_no desc
+	</select>
+	
+	<select id="refuse_select" parameterType="map" resultType="map">
+		select a.approval_no, a.approval_code, a.approval_date, a.approval_title
+			, e.emp_name, a.approval_1st, a.approval_2nd, a.approval_3rd
+			, a.approval_state, a.approval_content, a.approval_period, a.emp_no
+			, a.approval_1rs, a.approval_2rs, a.approval_3rs
+	        from approval a, emp e
+		<where> 
+			e.emp_no = a.emp_no 
+			<if test='period_from!=null and period_from.length>0 and period_from!="undefined"'>
+				and a.approval_date >= #{period_from}
+			</if>
+			<if test='period_to!=null and period_to.length>0 and period_to!="undefined"'>
+				and #{period_to} >= a.approval_date
+			</if>
+			<if test='p_mgrName!=null and p_mgrName.length>0 and p_mgrName!="undefined"'>
+				and (
+					(a.approval_1st = #{p_mgrName} and a.approval_1rs = '반려')
+					or (a.approval_2nd = #{p_mgrName} and a.approval_1rs ='승인' and a.approval_2rs = '반려')
+					or (a.approval_3rd = #{p_mgrName} and a.approval_1rs ='승인' 
+							and a.approval_2rs ='승인' and a.approval_3rs ='반려')
+							)
+			</if>
+			<!-- cf) approval_state(결재상태) -->
+			<!-- 0 : 기안완료, 1 : 1차승인, 2 : 2차승인, 3 : 최종승인, 4 : 반려, 5 : 임시 -->
+		</where>
+			order by a.approval_no desc
+	</select>
+	
+	<insert id="approval_insert" parameterType="map"> <!-- 기안상신 -->
+ 		INSERT INTO approval(approval_code, approval_no ,approval_state, approval_date
+			, approval_title ,approval_content, approval_period, emp_no
+	 		, approval_1st, approval_2nd, approval_3rd)
+   		values(seq_approval_code.nextval, #{APPROVAL_NO}, '0', #{APPROVAL_DATE}
+   			, #{APPROVAL_TITLE}, #{APPROVAL_CONTENT}, #{APPROVAL_PERIOD}, #{EMP_NO}
+   			, #{APPROVAL_1ST}, #{APPROVAL_2ND}, #{APPROVAL_3RD}) 
+ 	</insert>
+ 	
+	<insert id="imsi_insert" parameterType="map"> <!-- 임시저장 -->
+ 		INSERT INTO approval(approval_code, approval_no ,approval_state, approval_date
+			, approval_title ,approval_content, approval_period, emp_no
+	 		, approval_1st, approval_2nd, approval_3rd)
+   		values(seq_approval_code.nextval, #{APPROVAL_NO}, '5', #{APPROVAL_DATE}
+   			, #{APPROVAL_TITLE}, #{APPROVAL_CONTENT}, #{APPROVAL_PERIOD}, #{EMP_NO}
+   			, #{APPROVAL_1ST}, #{APPROVAL_2ND}, #{APPROVAL_3RD}) 
+ 	</insert>
+ 	
+ 	<select id="approval_count" parameterType="map" resultType="map">
+		select a.approval_no, a.approval_date, a.approval_title, e.emp_name, a.approval_3rd, a.approval_state
+	        from approval a, emp e
+		<where> 
+	        	e.emp_no=a.emp_no and e.emp_no = #{p_empNo}
+			<if test='p_date!=null and p_date.length>0 and p_date!="undefined"'>
+				and a.approval_date = #{p_date}
+			</if>
+		</where>
+	</select>
+ 	
+	<update  id="imsi_update" parameterType="map">
+		update APPROVAL
+ 			set 
+		 		APPROVAL_NO          = #{APPROVAL_NO         },     
+		 		APPROVAL_DATE        = #{APPROVAL_DATE       },     
+		 		APPROVAL_TITLE       = #{APPROVAL_TITLE      },     
+	 			APPROVAL_CONTENT     = #{APPROVAL_CONTENT    },     
+		 		APPROVAL_PERIOD      = #{APPROVAL_PERIOD     },     
+		 		APPROVAL_1ST      = #{APPROVAL_1ST     },     
+		 		APPROVAL_2ND     = #{APPROVAL_2ND    },     
+		        APPROVAL_3RD    = #{APPROVAL_3RD   },     
+		        APPROVAL_STATE = '0'
+			where APPROVAL_CODE = #{APPROVAL_CODE}
+ 	</update>
+ 	
+	<update  id="mgr_update" parameterType="map"> <!-- (수신자)결재처리 -->
+		update APPROVAL
+ 			set 
+	 			APPROVAL_NOTE         = #{APPROVAL_NOTE        },     
+				<if test='p_state!=null and p_state.length>0 and p_state!="undefined" and p_state=="1"'>
+					APPROVAL_1RS         = '승인',   
+					APPROVAL_STATE         = '1'  
+				</if>
+				<if test='p_state!=null and p_state.length>0 and p_state!="undefined" and p_state=="2"'>
+					APPROVAL_2RS         = '승인',
+					APPROVAL_STATE         = '2'  
+				</if>
+				<if test='p_state!=null and p_state.length>0 and p_state!="undefined" and p_state=="3"'>
+					APPROVAL_3RS         = '승인',
+					APPROVAL_STATE         = '3'
+				</if>
+			where APPROVAL_CODE = #{APPROVAL_CODE}
+ 	</update>
+ 	
+	<update  id="mgr_refuse" parameterType="map"> <!-- (수신자)결재처리 -->
+		update APPROVAL
+ 			set 
+	 			APPROVAL_NOTE         = #{APPROVAL_NOTE        },     
+				<if test='p_state!=null and p_state.length>0 and p_state!="undefined" and p_state=="1"'>
+					APPROVAL_1RS         = '반려',   
+					APPROVAL_STATE         = '4'  
+				</if>
+				<if test='p_state!=null and p_state.length>0 and p_state!="undefined" and p_state=="2"'>
+					APPROVAL_2RS         = '반려',
+					APPROVAL_STATE         = '4'  
+				</if>
+				<if test='p_state!=null and p_state.length>0 and p_state!="undefined" and p_state=="3"'>
+					APPROVAL_3RS         = '반려',
+					APPROVAL_STATE         = '4'
+				</if>
+			where APPROVAL_CODE = #{APPROVAL_CODE}
+ 	</update>
+ 	
+</mapper>
+
